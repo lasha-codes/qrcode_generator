@@ -1,7 +1,7 @@
 'use client'
 
 import { QRCode } from 'react-qrcode-logo'
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import {
   inputClassName,
   inputContainerClassName,
@@ -15,16 +15,17 @@ import { watermarks } from '@/config/watermarks'
 import { IoClose } from 'react-icons/io5'
 import Image from 'next/image'
 import StylePicker from './StylePicker'
-import { qrStyles } from '@/config/qrStyles'
+import { qrPrecisions, qrStyles } from '@/config/qrStyles'
 import ValueSlider from './Slider'
 import { Button } from './ui/button'
-import { Canvg } from 'canvg'
+import { downloadSVG } from '@/lib'
+import PrecisionPicker from './PrecisionPicker'
 
 const Generator = () => {
   const [domain, setDomain] = useState<string>(
     'https://tap-ping.com/qr/xxxxxxx'
   )
-  const [size, setSize] = useState<string>('200')
+  const [size, setSize] = useState<string>('230')
   const [bgColor, setBgColor] = useState<string>('#FFFFFF')
   const [fgColor, setFgColor] = useState<string>('#000000')
   const [eyeColor, setEyeColor] = useState<string>('#000000')
@@ -35,42 +36,9 @@ const Generator = () => {
   const [style, setStyle] = useState<(typeof qrStyles)[number]>('fluid')
   const [behindQrCode, setBehindQrCode] = useState<boolean>(false)
   const [eyeRadius, setEyeRadius] = useState<number>(15)
-
-  const qrRef = useRef<QRCode | null>(null)
-
-  const downloadSVG = () => {
-    const canvas = document.getElementById(
-      'react-qrcode-logo'
-    ) as HTMLCanvasElement
-
-    if (canvas) {
-      const scaleFactor = window.devicePixelRatio || 2
-
-      const highQualityCanvas = document.createElement('canvas')
-      const ctx = highQualityCanvas.getContext('2d')
-
-      if (ctx) {
-        highQualityCanvas.width = canvas.width * scaleFactor
-        highQualityCanvas.height = canvas.height * scaleFactor
-
-        ctx.scale(scaleFactor, scaleFactor)
-        ctx.drawImage(canvas, 0, 0)
-
-        const highResDataURL = highQualityCanvas.toDataURL('image/png')
-
-        const svgImage = `<svg xmlns="http://www.w3.org/2000/svg" width="${highQualityCanvas.width}" height="${highQualityCanvas.height}">
-                            <image href="${highResDataURL}" width="${highQualityCanvas.width}" height="${highQualityCanvas.height}" />
-                          </svg>`
-
-        const blob = new Blob([svgImage], { type: 'image/svg+xml' })
-
-        const link = document.createElement('a')
-        link.href = URL.createObjectURL(blob)
-        link.download = 'qrcode.svg'
-        link.click()
-      }
-    }
-  }
+  const [transparent, setTransparent] = useState<boolean>(false)
+  const [precision, setPrecision] =
+    useState<(typeof qrPrecisions)[number]>('M - Medium')
 
   return (
     <div className='w-fit max-sm:w-[90%] max-h-[95vh] h-fit flex flex-col items-center gap-8 p-5 rounded-[15px] shadow-2xl shadow-white/30 bg-white overflow-y-auto'>
@@ -114,6 +82,13 @@ const Generator = () => {
               <div className={inputContainerClassName}>
                 <h4 className='text-[15px]'>Background</h4>
                 <ColorPicker color={bgColor} setColor={setBgColor} />
+                <div
+                  onClick={() => setTransparent((prev) => !prev)}
+                  className='mt-2 flex items-center gap-1 font-medium cursor-default'
+                >
+                  Transparent
+                  <Checkbox checked={transparent} />
+                </div>
               </div>
               <div className={inputContainerClassName}>
                 <h4 className='text-[15px]'>Foreground</h4>
@@ -198,9 +173,17 @@ const Generator = () => {
           </div>
 
           <div className={inputContainerClassName}>
+            <h4 className={labelClassName}>Precision</h4>
+            <PrecisionPicker
+              precision={precision}
+              setPrecision={setPrecision}
+            />
+          </div>
+
+          <div className={inputContainerClassName}>
             <h4 className={labelClassName}>Eye radius</h4>
             <ValueSlider
-              max={100}
+              max={200}
               defaultValue={15}
               step={1}
               onSlide={(value) => setEyeRadius(value / 3)}
@@ -209,24 +192,27 @@ const Generator = () => {
         </div>
 
         <QRCode
-          ref={qrRef}
           value={domain}
           size={Number(size) || 150}
-          bgColor={bgColor}
+          bgColor={!transparent ? bgColor : 'transparent'}
           fgColor={fgColor}
           eyeColor={eyeColor}
           logoImage={logo}
           logoHeight={Number(logoHeight)}
           logoWidth={Number(logoWidth)}
-          removeQrCodeBehindLogo={!behindQrCode}
+          removeQrCodeBehindLogo={false}
           qrStyle={style}
-          eyeRadius={eyeRadius}
+          eyeRadius={eyeRadius * 0.5}
           logoPadding={Number(logoPadding)}
-          ecLevel='H'
+          ecLevel={precision[0] as 'L' | 'M' | 'Q' | 'H'}
+          quietZone={30}
         />
       </div>
 
-      <Button onClick={downloadSVG} className={`w-full h-[45px]`}>
+      <Button
+        onClick={() => downloadSVG(document)}
+        className={`w-full h-[45px]`}
+      >
         Download
       </Button>
     </div>

@@ -1,19 +1,21 @@
-import { qrStyles } from '@/config/qrStyles'
+import { qrPrecisions } from '@/config/qrStyles'
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
-import { buttonVariants } from './ui/button'
 import { cn } from '@/lib/utils'
+import { buttonVariants } from './ui/button'
 
 interface Props {
-  style: (typeof qrStyles)[number]
-  setStyle: React.Dispatch<React.SetStateAction<(typeof qrStyles)[number]>>
+  precision: (typeof qrPrecisions)[number]
+  setPrecision: React.Dispatch<
+    React.SetStateAction<(typeof qrPrecisions)[number]>
+  >
 }
 
-const StylePicker = ({ style, setStyle }: Props) => {
+const PrecisionPicker = ({ precision, setPrecision }: Props) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -22,16 +24,16 @@ const StylePicker = ({ style, setStyle }: Props) => {
           buttonVariants({ variant: 'outline' })
         )}
       >
-        {style}
+        {precision}
       </DropdownMenuTrigger>
       <DropdownMenuContent align='start'>
-        {qrStyles.map((text) => (
+        {qrPrecisions.map((item) => (
           <DropdownMenuItem
-            onClick={() => setStyle(text)}
-            key={text}
-            className='capitalize font-medium'
+            onClick={() => setPrecision(item)}
+            key={item}
+            className='font-medium'
           >
-            {text}
+            {item}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
@@ -39,4 +41,4 @@ const StylePicker = ({ style, setStyle }: Props) => {
   )
 }
 
-export default StylePicker
+export default PrecisionPicker
