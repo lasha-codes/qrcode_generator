@@ -18,8 +18,9 @@ import StylePicker from './StylePicker'
 import { qrPrecisions, qrStyles } from '@/config/qrStyles'
 import ValueSlider from './Slider'
 import { Button } from './ui/button'
-import { downloadSVG } from '@/lib'
+import { downloadSVG, generateQrCode } from '@/lib'
 import PrecisionPicker from './PrecisionPicker'
+import { GoDownload } from 'react-icons/go'
 
 const Generator = () => {
   const [domain, setDomain] = useState<string>(
@@ -37,6 +38,7 @@ const Generator = () => {
   const [behindQrCode, setBehindQrCode] = useState<boolean>(false)
   const [eyeRadius, setEyeRadius] = useState<number>(15)
   const [transparent, setTransparent] = useState<boolean>(false)
+  const [uploading, setUploading] = useState<boolean>(false)
   const [precision, setPrecision] =
     useState<(typeof qrPrecisions)[number]>('M - Medium')
 
@@ -84,7 +86,7 @@ const Generator = () => {
                 <ColorPicker color={bgColor} setColor={setBgColor} />
                 <div
                   onClick={() => setTransparent((prev) => !prev)}
-                  className='mt-2 flex items-center gap-1 font-medium cursor-default'
+                  className='mt-2 flex items-center gap-2 text-[15px] font-medium cursor-default'
                 >
                   Transparent
                   <Checkbox checked={transparent} />
@@ -143,7 +145,7 @@ const Generator = () => {
             </div>
             <div
               onClick={() => setBehindQrCode((prev) => !prev)}
-              className='mt-2 flex items-center gap-1 font-medium cursor-default'
+              className='mt-2 flex items-center gap-2 font-medium cursor-default text-[15px]'
             >
               Remove QrCode behind logo
               <Checkbox checked={behindQrCode} />
@@ -210,10 +212,15 @@ const Generator = () => {
       </div>
 
       <Button
-        onClick={() => downloadSVG(document)}
-        className={`w-full h-[45px]`}
+        disabled={uploading}
+        onClick={() => {
+          downloadSVG(document)
+          generateQrCode(domain, setUploading)
+        }}
+        className={`w-full h-[45px] flex items-center gap-3`}
       >
         Download
+        <GoDownload />
       </Button>
     </div>
   )

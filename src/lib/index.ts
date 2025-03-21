@@ -1,3 +1,6 @@
+import axios from 'axios'
+import { toast } from 'sonner'
+
 export const downloadSVG = (documentObject: Document) => {
   const canvas = documentObject.getElementById(
     'react-qrcode-logo'
@@ -21,5 +24,19 @@ export const downloadSVG = (documentObject: Document) => {
       link.download = 'qrcode.svg'
       link.click()
     }
+  }
+}
+
+export const generateQrCode = async (
+  domain: string,
+  setUploading: React.Dispatch<React.SetStateAction<boolean>>
+) => {
+  try {
+    setUploading(true)
+    const { data } = await axios.post('/api', { domain })
+    setUploading(false)
+    return data.qrCode
+  } catch (err) {
+    setUploading(false)
   }
 }
